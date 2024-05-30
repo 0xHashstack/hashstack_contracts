@@ -53,7 +53,7 @@ fn deploy_token() -> (ERC20ABIDispatcher, ContractAddress) {
     Serde::serialize(@INITIAL_SUPPLY(), ref calldata);
 
     let token_address = token.deploy(@calldata).unwrap();
-    let dispatcher = ERC20ABIDispatcher { token_address };
+    let dispatcher = ERC20ABIDispatcher { contract_address: token_address };
     (dispatcher, address)
 }
 
