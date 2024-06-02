@@ -101,7 +101,7 @@ mod ERC4626Component {
         TContractState,
         +HasComponent<TContractState>,
         impl erc20: ERC20Component::HasComponent<TContractState>,
-        impl Hooks: ERC4626HooksTrait<TContractState>,
+        +ERC4626HooksTrait<TContractState>,
         +SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of IERC4626<ComponentState<TContractState>> {
@@ -322,9 +322,9 @@ mod ERC4626Component {
     impl ERC4626Camel<
         TContractState,
         +HasComponent<TContractState>,
-        impl erc20: ERC20Component::HasComponent<TContractState>,
-        impl src5: SRC5Component::HasComponent<TContractState>,
-        impl Hooks: ERC4626HooksTrait<TContractState>,
+        +ERC20Component::HasComponent<TContractState>,
+        +SRC5Component::HasComponent<TContractState>,
+        +ERC4626HooksTrait<TContractState>,
         +Drop<TContractState>
     > of IERC4626Camel<ComponentState<TContractState>> {
         fn totalSupply(self: @ComponentState<TContractState>) -> u256 {
@@ -383,7 +383,7 @@ mod ERC4626Component {
         TContractState,
         +HasComponent<TContractState>,
         impl erc20: ERC20Component::HasComponent<TContractState>,
-        impl src5: SRC5Component::HasComponent<TContractState>,
+        +SRC5Component::HasComponent<TContractState>,
         impl Hooks: ERC4626HooksTrait<TContractState>,
         +Drop<TContractState>
     > of InternalImplTrait<TContractState> {
