@@ -18,35 +18,6 @@ fn INITIAL_SUPPLY() -> u256 {
     1000000000000000000000000000000
 }
 
-fn TOKEN_ADDRESS() -> ContractAddress {
-    'token_address'.try_into().unwrap()
-}
-
-fn VAULT_ADDRESS() -> ContractAddress {
-    'vault_address'.try_into().unwrap()
-}
-
-// fn pow_256(self: u256, mut exponent: u8) -> u256 {
-//     if self.is_zero() {
-//         return 0;
-//     }
-//     let mut result = 1;
-//     let mut base = self;
-
-//     loop {
-//         if exponent & 1 == 1 {
-//             result = result * base;
-//         }
-
-//         exponent = exponent / 2;
-//         if exponent == 0 {
-//             break result;
-//         }
-
-//         base = base * base;
-//     }
-// }
-
 fn deploy_token() -> (ERC20ABIDispatcher, ContractAddress) {
     let contract = declare("ERC20Token").unwrap();
     let mut calldata = Default::default();
@@ -72,17 +43,31 @@ fn deploy_contract() -> (ERC20ABIDispatcher, IERC4626Dispatcher) {
 }
 
 #[test]
+fn test_initialization(){
+    let (asset, vault) = deploy_contract();
+    assert!(asset.total_supply() == INITIAL_SUPPLY(), "Initial supply not matched");
+    let name: ByteArray = "Test Token";
+    let symbol: ByteArray = "TST";
+    assert!(vault.name() == name, "Name not matched");
+    assert!(vault.symbol() == symbol, "Symbol not matched");
+    assert!(vault.total_supply() == 0, "Total supply must be 0 initialy");
+    assert!(vault.total_assets() == 0, "Total assets must be 0 initialy");
+    assert!(vault.decimals() == 18, "Decimals must be 18");
+
+}
+
+#[test]
 fn test_convert_to_assets() {
     let ( _, vault) = deploy_contract();
     let shares = pow_256(10,2);
-    assert(vault.convert_to_assets(shares) == 100, 'invalid shares');
+    assert!(vault.convert_to_assets(shares) == 100, "invalid shares");
 }
 
 #[test]
 fn test_convert_to_shares() {
     let ( _, vault) = deploy_contract();
     let assets = pow_256(10,2);
-    assert(vault.convert_to_shares(assets) == 100, 'invalid assets');
+    assert!(vault.convert_to_shares(assets) == 100, "invalid assets");
 }
 
 #[test]
@@ -94,7 +79,7 @@ fn deposit_flow_test(){
     stop_prank(CheatTarget::One(asset.contract_address));
     let result = vault.preview_deposit(amount);
     start_prank(CheatTarget::One(vault.contract_address), OWNER());
-    assert(vault.deposit(amount, OWNER()) ==  result, 'invalind converted shares');
+    assert!(vault.deposit(amount, OWNER()) ==  result, "invalind converted shares");
 }
 
 #[test]
@@ -106,7 +91,7 @@ fn mint_flow_test(){
     stop_prank(CheatTarget::One(asset.contract_address));
     let minted = vault.preview_mint(amount);
     start_prank(CheatTarget::One(vault.contract_address), OWNER());
-    assert(vault.mint(amount, OWNER()) == minted, 'invalid mint shares');
+    assert!(vault.mint(amount, OWNER()) == minted, "invalid mint shares");
 }
 
 #[test]
@@ -118,10 +103,9 @@ fn redeem_flow_test(){
     stop_prank(CheatTarget::One(asset.contract_address));
     start_prank(CheatTarget::One(vault.contract_address), OWNER());
     let shares = vault.deposit(amount, OWNER());
-    assert(asset.balanceOf(OWNER()) == 0, 'invalid balance before');
-    start_prank(CheatTarget::One(vault.contract_address), OWNER());
+    assert!(asset.balanceOf(OWNER()) == 0, "invalid balance before");
     let _redeemed = vault.redeem(shares, OWNER(), OWNER());
-    assert(asset.balanceOf(OWNER()) == amount, 'invalid balance after');
+    assert!(asset.balanceOf(OWNER()) == amount, "invalid balance after");
 }
 
 #[test]
@@ -133,8 +117,7 @@ fn withdraw_flow_test(){
     stop_prank(CheatTarget::One(asset.contract_address));
     start_prank(CheatTarget::One(vault.contract_address), OWNER());
     let shares = vault.deposit(amount, OWNER());
-    assert(asset.balanceOf(OWNER()) == 0, 'invalid balance before');
-    start_prank(CheatTarget::One(vault.contract_address), OWNER());
+    assert!(asset.balanceOf(OWNER()) == 0, "invalid balance before");
     let _shares = vault.withdraw(shares, OWNER(), OWNER());
-    assert(asset.balanceOf(OWNER()) == amount, 'invalid balance after');
+    assert!(asset.balanceOf(OWNER()) == amount, "invalid balance after");
 }
